@@ -1,4 +1,5 @@
 .idea
+*pycache*
 /report/report.fdb_latexmk
 /report/report.fls
 /report/report.bcf
