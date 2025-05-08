@@ -104,22 +104,22 @@ def main() -> None:
     plot_detection_fields(detection_map=detection_map)
 
     # Build the graph from the detection map
-    G = build_graph(detection_map=detection_map, tolerance=execution_parameters['tolerance'])
+    directed_graph = build_graph(detection_map=detection_map, tolerance=execution_parameters['tolerance'])
 
     # Get the POI's that the plane must visit
-    POIs = np.array(execution_parameters['POIs'], dtype=np.float32)
+    points_of_interest = np.array(execution_parameters['POIs'], dtype=np.float32)
 
     # Compute the solution
-    solution_plan, nodes_expanded = path_finding(G=G,
+    solution_plan, nodes_expanded = path_finding(G=directed_graph,
                                  heuristic_function=h2,
-                                 locations=POIs, 
+                                 locations=points_of_interest,
                                  initial_location_index=0,
                                  boundaries=boundaries,
                                  map_width=M.width,
                                  map_height=M.height)
     
     # Compute the solution cost
-    path_cost = compute_path_cost(G=G, solution_plan=solution_plan)
+    path_cost = compute_path_cost(G=directed_graph, solution_plan=solution_plan)
 
     # Some verbose of the total cost and the number of expanded nodes
     print(f"Total path cost: {path_cost}")
