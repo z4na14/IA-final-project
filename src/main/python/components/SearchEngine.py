@@ -1,8 +1,6 @@
-# Required imports
 import numpy as np
 import networkx as nx
-from Boundaries import Boundaries
-from Map import EPSILON
+from .Boundaries import Boundaries
 
 # Number of nodes expanded in the heuristic search (stored in a global variable to be updated from the heuristic functions)
 NODES_EXPANDED = 0

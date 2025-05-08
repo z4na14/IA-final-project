@@ -1,12 +1,11 @@
-# Required imports
 import numpy as np
 import matplotlib.pyplot as plt
 import sys
 import json
 import os
-from Map import Map
-from Boundaries import Boundaries
-from SearchEngine import build_graph, path_finding, compute_path_cost, h1, h2
+from components.Map import Map
+from components.Boundaries import Boundaries
+from components.SearchEngine import build_graph, path_finding, compute_path_cost, h2
 
 def plot_radar_locations(boundaries: Boundaries, radar_locations: np.array) -> None:
     """ Auxiliary function for plotting the radar locations """
@@ -55,23 +54,34 @@ def plot_solution(detection_map: np.array, solution_plan: list, bicubic: bool=Tr
 
 def parse_args() -> dict:
     """ Parses the main arguments of the program and returns them stored in a dictionary """
-    json_path            = f"{os.getcwd()}/scenarios.json"
+    json_path            = f"{os.getcwd()}/src/main/python/components/scenarios.json"
     scenario_json        = sys.argv[1]
     tolerance            = float(sys.argv[2])
     execution_parameters = {}
-    with open(json_path, 'r', encoding='utf-8') as file:
-        data = json.load(file)
-        for entry in data:
-            key = list(entry.keys())[0]
-            if key == scenario_json:
-                execution_parameters = entry[key]
-                break
+    try:
+        with open(json_path, 'r', encoding='utf-8') as file:
+            data = json.load(file)
+            for entry in data:
+                key = list(entry.keys())[0]
+                if key == scenario_json:
+                    execution_parameters = entry[key]
+                    break
+
+    except FileNotFoundError:
+        alternative_json_path = f"{os.getcwd()}/components/scenarios.json"
+        with open(alternative_json_path, 'r', encoding='utf-8') as file:
+            data = json.load(file)
+            for entry in data:
+                key = list(entry.keys())[0]
+                if key == scenario_json:
+                    execution_parameters = entry[key]
+                    break
+
     execution_parameters["tolerance"] = tolerance
     return execution_parameters
 
 # System's main function
 def main() -> None:
-
     # Parse the input parameters (arguments) of the program (current execution)
     execution_parameters = parse_args()
 
@@ -85,20 +95,20 @@ def main() -> None:
                             min_lon=execution_parameters['min_lon'])
     
     # Define the map with its corresponding boundaries and coordinates
-    M = Map(boundaries=boundaries,
+    radar_map = Map(boundaries=boundaries,
             height=execution_parameters['H'],
             width=execution_parameters['W'])
     
     # Generate random radars
     n_radars = execution_parameters['n_radars']
-    M.generate_radars(n_radars=n_radars)
-    radar_locations = M.get_radars_locations_numpy()
+    radar_map.generate_radars(n_radars=n_radars)
+    radar_locations = radar_map.get_radars_locations_numpy()
 
     # Plot the radar locations (latitude increments from bottom to top)
     plot_radar_locations(boundaries=boundaries, radar_locations=radar_locations)
 
     # Compute the detection map (sets the costs for each cell)
-    detection_map = M.compute_detection_map()
+    detection_map = radar_map.compute_detection_map()
 
     # Plot the detection map (detection fields)
     plot_detection_fields(detection_map=detection_map)
@@ -115,8 +125,8 @@ def main() -> None:
                                  locations=points_of_interest,
                                  initial_location_index=0,
                                  boundaries=boundaries,
-                                 map_width=M.width,
-                                 map_height=M.height)
+                                 map_width=radar_map.width,
+                                 map_height=radar_map.height)
     
     # Compute the solution cost
     path_cost = compute_path_cost(G=directed_graph, solution_plan=solution_plan)

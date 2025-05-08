@@ -7,7 +7,11 @@ networkx==3.4.2
 numpy==2.2.5
 packaging==25.0
 pillow==11.2.1
+pybuilder==0.13.15
 pyparsing==3.2.3
+PyQt6==6.9.0
+PyQt6-Qt6==6.9.0
+PyQt6_sip==13.10.0
 python-dateutil==2.9.0.post0
 six==1.17.0
 tqdm==4.67.1

@@ -1,4 +1,3 @@
-# Required imports
 import numpy as np
 
 class Boundaries:
