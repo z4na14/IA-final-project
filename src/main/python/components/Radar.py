@@ -1,6 +1,7 @@
 import numpy as np
 from .Location import Location
 
+
 class Radar:
     """ Class that models the Radar """
     def __init__(self, 

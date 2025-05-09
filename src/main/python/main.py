@@ -7,48 +7,143 @@ from components.Map import Map
 from components.Boundaries import Boundaries
 from components.SearchEngine import build_graph, path_finding, compute_path_cost, h2
 
-def plot_radar_locations(boundaries: Boundaries, radar_locations: np.array) -> None:
-    """ Auxiliary function for plotting the radar locations """
-    plt.figure(figsize=(8, 8))
-    plt.title("Radar locations in the map")
+
+def plot_radar_locations(boundaries: Boundaries,
+                         radar_locations: np.array,
+                         title: str = "Radar Locations in the Map") -> None:
+    """
+    Plots radar locations with consistent styling
+    Args:
+        boundaries: Geographic boundaries object
+        radar_locations: Numpy array of (lat, lon) coordinates
+        title: Optional plot title
+    """
+    plt.figure(figsize=(10, 8))
+    plt.title(title)
+
+    # Plot map boundaries
     plt.plot([boundaries.min_lon, boundaries.max_lon, boundaries.max_lon, boundaries.min_lon, boundaries.min_lon],
              [boundaries.max_lat, boundaries.max_lat, boundaries.min_lat, boundaries.min_lat, boundaries.max_lat],
-             label='Boundaries',
-             linestyle='--',
-             c='black')
-    plt.scatter(radar_locations[:, 1], radar_locations[:, 0], label='Radars', c='green')
+             'k--', linewidth=1, label='Area Boundary')
+
+    # Plot radars
+    plt.scatter(radar_locations[:, 1], radar_locations[:, 0],
+                c='red', marker='X', s=100, label='Radars', zorder=3)
+
+    # Style settings
     plt.xlabel("Longitude")
     plt.ylabel("Latitude")
-    plt.grid(True)
-    plt.legend()
+    plt.grid(True, alpha=0.3)
+    plt.legend(loc='upper right')
+    plt.tight_layout()
     plt.show()
     return
 
-def plot_detection_fields(detection_map: np.array, bicubic: bool=True) -> None:
-    """ Auxiliary function for plotting the detection fields """
-    plt.figure(figsize=(8, 8))
-    plt.title("Radar detection fields")
-    im = plt.imshow(X=detection_map, cmap='Greens', interpolation='bicubic' if bicubic else None)
-    plt.colorbar(im, label='Detection values')
+def plot_detection_fields(detection_map: np.array,
+                          boundaries: Boundaries,
+                          title: str = "Radar Detection Fields",
+                          bicubic: bool = True) -> None:
+    """
+    Plots detection fields with consistent styling
+    Args:
+        detection_map: 2D numpy array of detection probabilities
+        boundaries: Geographic boundaries object
+        title: Optional plot title
+        bicubic: Whether to use smooth interpolation
+    """
+    plt.figure(figsize=(10, 8))
+    plt.title(title)
+
+    # Set up geographic extent
+    extent = [boundaries.min_lon, boundaries.max_lon,
+              boundaries.min_lat, boundaries.max_lat]
+
+    # Plot detection map
+    im = plt.imshow(detection_map,
+                    extent=extent,
+                    origin='lower',
+                    cmap='RdYlGn_r',  # Red-Yellow-Green (reversed)
+                    vmin=0, vmax=1,
+                    alpha=0.8,
+                    interpolation='bicubic' if bicubic else None)
+
+    # Add colorbar and labels
+    cbar = plt.colorbar(im)
+    cbar.set_label('Detection Probability')
+    plt.xlabel("Longitude")
+    plt.ylabel("Latitude")
+    plt.grid(True, alpha=0.3)
+
+    # Plot boundaries
+    plt.plot([boundaries.min_lon, boundaries.max_lon, boundaries.max_lon, boundaries.min_lon, boundaries.min_lon],
+             [boundaries.max_lat, boundaries.max_lat, boundaries.min_lat, boundaries.min_lat, boundaries.max_lat],
+             'k--', linewidth=1, label='Area Boundary')
+
+    plt.legend(loc='upper right')
+    plt.tight_layout()
     plt.show()
     return
 
-def plot_solution(detection_map: np.array, solution_plan: list, bicubic: bool=True) -> None:
-    """ Auxiliary function for plotting the solution plan with markers in each POI """
-    plt.figure(figsize=(8,8))
-    plt.title("Solution plan")
-    for i in range(len(solution_plan)):
-        start_point = eval(solution_plan[i][0])
-        plt.scatter(start_point[1], start_point[0], c='black', marker='*', zorder=2)
-        path_array = np.zeros(shape=(len(solution_plan[i]), 2))
-        for j in range(len(path_array)):
-            path_array[j] = eval(solution_plan[i][j])
-        plt.plot(path_array[:, 1], path_array[:, 0], zorder=1)
-    final_point = eval(solution_plan[-1][-1])
-    plt.scatter(final_point[1], final_point[0], c='black', marker='*', label=f'Waypoints', zorder=2)
-    im = plt.imshow(X=detection_map, cmap='Greens', interpolation='bicubic' if bicubic else None)
-    plt.colorbar(im, label='Detection values')
-    plt.legend()
+def plot_solution(detection_map: np.array,
+                  solution_plan: list,
+                  boundaries: Boundaries,
+                  bicubic: bool = True) -> None:
+    """
+    Plots the solution plan over the detection map
+    Args:
+        detection_map: 2D numpy array of detection probabilities
+        solution_plan: List of path segments (from path_finding)
+        boundaries: Boundaries object containing geographic limits
+        bicubic: Whether to use bicubic interpolation for smoother visualization
+    """
+    plt.figure(figsize=(10, 8))
+    plt.title("Optimal Path Through Radar Detection Field")
+
+    # Set up geographic extent
+    extent = [boundaries.min_lon, boundaries.max_lon,
+              boundaries.min_lat, boundaries.max_lat]
+
+    # Plot detection map first
+    im = plt.imshow(detection_map,
+                    extent=extent,
+                    origin='lower',
+                    cmap='RdYlGn_r',  # Red-Yellow-Green (reversed)
+                    vmin=0, vmax=1,
+                    alpha=0.7,
+                    interpolation='bicubic' if bicubic else None)
+
+    # Plot each path segment
+    for segment in solution_plan:
+        if not segment:
+            continue
+
+        # Extract coordinates
+        lons = [point['geo'][1] for point in segment]
+        lats = [point['geo'][0] for point in segment]
+
+        # Plot path
+        plt.plot(lons, lats, 'b-', linewidth=2, zorder=3)
+
+        # Plot markers
+        plt.scatter(lons[0], lats[0], c='green', marker='o', s=100, zorder=4)
+        plt.scatter(lons[-1], lats[-1], c='red', marker='X', s=100, zorder=4)
+
+    # Add colorbar and labels
+    cbar = plt.colorbar(im)
+    cbar.set_label('Detection Probability')
+    plt.xlabel("Longitude")
+    plt.ylabel("Latitude")
+    plt.grid(True, alpha=0.3)
+
+    # Create custom legend
+    legend_elements = [
+        plt.Line2D([0], [0], color='blue', lw=2, label='Flight Path'),
+        plt.scatter([], [], c='green', marker='o', s=100, label='Path Start'),
+        plt.scatter([], [], c='red', marker='X', s=100, label='Path End')
+    ]
+    plt.legend(handles=legend_elements, loc='upper right')
+
+    plt.tight_layout()
     plt.show()
     return
 
@@ -111,7 +206,7 @@ def main() -> None:
     detection_map = radar_map.compute_detection_map()
 
     # Plot the detection map (detection fields)
-    plot_detection_fields(detection_map=detection_map)
+    plot_detection_fields(detection_map=detection_map, boundaries=boundaries)
 
     # Build the graph from the detection map
     directed_graph = build_graph(detection_map=detection_map, tolerance=execution_parameters['tolerance'])
@@ -120,23 +215,23 @@ def main() -> None:
     points_of_interest = np.array(execution_parameters['POIs'], dtype=np.float32)
 
     # Compute the solution
-    solution_plan, nodes_expanded = path_finding(G=directed_graph,
-                                 heuristic_function=h2,
-                                 locations=points_of_interest,
-                                 initial_location_index=0,
-                                 boundaries=boundaries,
-                                 map_width=radar_map.width,
-                                 map_height=radar_map.height)
+    solution_plan, nodes_expanded = path_finding(graph=directed_graph,
+                                                 heuristic_function=h2,
+                                                 locations=points_of_interest,
+                                                 initial_location_index=0,
+                                                 boundaries=boundaries,
+                                                 map_width=radar_map.width,
+                                                 map_height=radar_map.height)
     
     # Compute the solution cost
-    path_cost = compute_path_cost(G=directed_graph, solution_plan=solution_plan)
+    path_cost = compute_path_cost(graph=directed_graph, solution_plan=solution_plan)
 
     # Some verbose of the total cost and the number of expanded nodes
     print(f"Total path cost: {path_cost}")
     print(f"Number of expanded nodes: {nodes_expanded}")
 
     # Plot the solution
-    plot_solution(detection_map=detection_map, solution_plan=solution_plan)
+    plot_solution(detection_map=detection_map, boundaries=boundaries, solution_plan=solution_plan)
 
 if __name__ == '__main__':
     main()

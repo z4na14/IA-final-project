@@ -4,6 +4,7 @@ from .Radar import Radar
 from tqdm import tqdm
 import numpy as np
 
+
 # Constant that avoids setting cells to have an associated cost of zero
 EPSILON = 1e-4
 

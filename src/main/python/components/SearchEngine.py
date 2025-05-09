@@ -2,6 +2,7 @@ import numpy as np
 import networkx as nx
 from .Boundaries import Boundaries
 
+
 # Number of nodes expanded in the heuristic search (stored in a global variable to be updated from the heuristic functions)
 NODES_EXPANDED = 0
 
@@ -57,7 +58,7 @@ def discretize_coords(high_level_plan: np.array, boundaries: Boundaries, map_wid
 
     return np.array(discretized)
 
-def path_finding(G: nx.DiGraph,
+def path_finding(graph: nx.DiGraph,
                  heuristic_function,
                  locations: np.array,
                  initial_location_index: np.int32,
@@ -84,17 +85,23 @@ def path_finding(G: nx.DiGraph,
             NODES_EXPANDED = 0
 
             # Find path using A* with the specified heuristic
-            path = nx.astar_path(G, tuple(current_location), tuple(next_location),
+            path = nx.astar_path(graph, tuple(current_location), tuple(next_location),
                                  heuristic=heuristic_function, weight='weight')
 
-            # Add path to solution plan (converting back to lat/lon)
-            path_coords = []
+            # Convert path to include both coordinate systems
+            path_segment = []
             for y, x in path:
+                # Calculate geodetic coordinates
                 lat = boundaries.min_lat + (y / (map_height - 1)) * (boundaries.max_lat - boundaries.min_lat)
                 lon = boundaries.min_lon + (x / (map_width - 1)) * (boundaries.max_lon - boundaries.min_lon)
-                path_coords.append(f"[{lat}, {lon}]")
 
-            solution_plan.append(path_coords)
+                # Store both coordinate systems
+                path_segment.append({
+                    'grid': (y, x),  # Grid coordinates for graph operations
+                    'geo': (lat, lon)  # Geodetic coordinates for visualization
+                })
+
+            solution_plan.append(path_segment)
             total_nodes_expanded += NODES_EXPANDED
 
             # Move to next location
@@ -106,15 +113,14 @@ def path_finding(G: nx.DiGraph,
 
     return solution_plan, total_nodes_expanded
 
-def compute_path_cost(G: nx.DiGraph, solution_plan: list) -> np.float32:
+def compute_path_cost(graph: nx.DiGraph, solution_plan: list) -> np.float32:
     """ Computes the total cost of the whole planning solution """
     total_cost = 0.0
 
-    for path in solution_plan:
-        for i in range(len(path) - 1):
-            # Get edge weight between consecutive nodes
-            start = eval(path[i])
-            end = eval(path[i+1])
-            total_cost += G[start[0], start[1]][end[0], end[1]]['weight']
+    for path_segment in solution_plan:
+        for i in range(len(path_segment) - 1):
+            start = path_segment[i]['grid']
+            end = path_segment[i+1]['grid']
+            total_cost += graph[start][end]['weight']
 
     return total_cost

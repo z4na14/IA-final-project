@@ -1,5 +1,6 @@
 import numpy as np
 
+
 class Boundaries:
     """ Class that defines the limits (in geodetic coordinates) of a map """
     def __init__(self, 

@@ -1,5 +1,6 @@
 import numpy as np
 
+
 class Location:
     """ Class that represents a bidimensional (geodetic) coordinate / location """
     def __init__(self, latitude: np.float32, longitude: np.float32):
