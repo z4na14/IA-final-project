@@ -74,7 +74,7 @@ $$s_0 = (y_0, x_0) \text{ where }(lat_0, lon_0) \mapsto (y_0,x_0)$$
 
 For a sequence of POIs $\{p_1,\text{ ...},p_k\}$:
 
-$$s_{goal} = \left\{(y_i,x_i) \right\}_{i=1}^k \text{ where each } p_i \mapsto (y_i,x_i)$$
+$$s_{goal} = \{(y_i,x_i)\}_{i=1}^k \text{ where each } p_i \mapsto (y_i,x_i)$$
 
 #### Solution Characteristics:
 
