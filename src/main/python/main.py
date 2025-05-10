@@ -18,7 +18,7 @@ def plot_radar_locations(boundaries: Boundaries,
         radar_locations: Numpy array of (lat, lon) coordinates
         title: Optional plot title
     """
-    plt.figure(figsize=(10, 8))
+    plt.figure(figsize=(10, 10))
     plt.title(title)
 
     # Plot map boundaries
@@ -33,7 +33,7 @@ def plot_radar_locations(boundaries: Boundaries,
     # Style settings
     plt.xlabel("Longitude")
     plt.ylabel("Latitude")
-    plt.grid(True, alpha=0.3)
+    plt.grid(True, alpha=0.8, lw=2, ls='--')
     plt.legend(loc='upper right')
     plt.tight_layout()
     plt.show()
@@ -51,7 +51,7 @@ def plot_detection_fields(detection_map: np.array,
         title: Optional plot title
         bicubic: Whether to use smooth interpolation
     """
-    plt.figure(figsize=(10, 8))
+    plt.figure(figsize=(10, 10))
     plt.title(title)
 
     # Set up geographic extent
@@ -72,8 +72,7 @@ def plot_detection_fields(detection_map: np.array,
     cbar.set_label('Detection Probability')
     plt.xlabel("Longitude")
     plt.ylabel("Latitude")
-    plt.grid(True, alpha=0.3)
-
+    plt.grid(True, alpha=0.8, lw=2, ls='--')
     # Plot boundaries
     plt.plot([boundaries.min_lon, boundaries.max_lon, boundaries.max_lon, boundaries.min_lon, boundaries.min_lon],
              [boundaries.max_lat, boundaries.max_lat, boundaries.min_lat, boundaries.min_lat, boundaries.max_lat],
@@ -95,7 +94,7 @@ def plot_solution(detection_map: np.array,
         boundaries: Boundaries object containing geographic limits
         bicubic: Whether to use bicubic interpolation for smoother visualization
     """
-    plt.figure(figsize=(10, 8))
+    plt.figure(figsize=(10, 10))
     plt.title("Optimal Path Through Radar Detection Field")
 
     # Set up geographic extent
@@ -132,7 +131,7 @@ def plot_solution(detection_map: np.array,
     cbar.set_label('Detection Probability')
     plt.xlabel("Longitude")
     plt.ylabel("Latitude")
-    plt.grid(True, alpha=0.3)
+    plt.grid(True, alpha=0.8, lw=2, ls='--')
 
     # Create custom legend
     legend_elements = [
