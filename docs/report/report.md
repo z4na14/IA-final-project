@@ -10,7 +10,7 @@ autores:
     nia: 100522240
   - nombre: Ignacio Cortina de Antonio
     nia: 100522372
-nombre-lab: Artificial Intelligence Practice
+nombre-lab: Final practice
 titulo: Heuristic Search in Radars
 ---
 
