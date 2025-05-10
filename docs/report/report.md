@@ -33,7 +33,7 @@ uwu
 
 ### Our modelation of the system
 
-- Space state: S = {(i,j) | i \$ \in \$ [0, W-1], j \$ \in \$ [0, H-1], $\\Psi$ * <= Tolerance}
+- Space state: $S = \{(i,j) | i \in [0, W-1], j \in [0, H-1], \Psi^* \le \text{Tolerance}\}$
 - Initial state: \$S_0\$ = (\$i_0\$, \$j_0\$) | $\\Psi$ *  (i, j) <= Tolerance
 - Goal: G = {\$p_1\$, \$p_2\$, \$p_3\$, ..., \$p_n\$} | n \$ \in \$ \$\mathbb{N}\$. \$s_goal\$ = \$p_i+1\$ = (\$i_goal\$, \$j_goal\$) \$ \in \$ S
 - Operators: A(s) = {s' \in \$ S \$ | s'(i) = s(i \$\stackrel{+}{-}\$ 1) \$\lor\$ (s'(j) = s(j \$\stackrel{+}{-}\$ 1)), $\\Psi$* (s') <= Tolerance}
