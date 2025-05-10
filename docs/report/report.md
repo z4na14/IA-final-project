@@ -80,7 +80,7 @@ $$s_{goal} = \left\{(y_i,x_i) \right\}_{i=1}^k \text{ where each } p_i \mapsto (
 
 A solution is a path $\pi = [s_0, s_1, \text{ ...}, s_n]$ where:
 
-1. $s_n \in s_goal$
+1. $s_n \in s_{goal}$
 2. $\forall i, \exists a \in A \text{ such that } s_{i+1} = T(s_i, a)$
 3. Total costs $C(\pi) = \sum_{i = 0}^{n-1} c(s_i, s_{i + 1})$ is minimized
 
