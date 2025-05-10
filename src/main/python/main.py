@@ -5,15 +5,15 @@ import json
 import os
 from components.Map import Map
 from components.Boundaries import Boundaries
-from components.SearchEngine import build_graph, path_finding, compute_path_cost, h2
+from components.SearchEngine import build_graph, path_finding, compute_path_cost, h1, h2
 
 
 def plot_radar_locations(boundaries: Boundaries,
                          radar_locations: np.array,
                          title: str = "Radar Locations in the Map") -> None:
     """
-    Plots radar locations with consistent styling
-    Args:
+    Plots radar locations
+    Arguments:
         boundaries: Geographic boundaries object
         radar_locations: Numpy array of (lat, lon) coordinates
         title: Optional plot title
@@ -44,8 +44,8 @@ def plot_detection_fields(detection_map: np.array,
                           title: str = "Radar Detection Fields",
                           bicubic: bool = True) -> None:
     """
-    Plots detection fields with consistent styling
-    Args:
+    Plots detection fields
+    Arguments:
         detection_map: 2D numpy array of detection probabilities
         boundaries: Geographic boundaries object
         title: Optional plot title
@@ -77,7 +77,7 @@ def plot_detection_fields(detection_map: np.array,
     # Plot boundaries
     plt.plot([boundaries.min_lon, boundaries.max_lon, boundaries.max_lon, boundaries.min_lon, boundaries.min_lon],
              [boundaries.max_lat, boundaries.max_lat, boundaries.min_lat, boundaries.min_lat, boundaries.max_lat],
-             'k--', linewidth=1, label='Area Boundary')
+             'k--', linewidth=1)
 
     plt.legend(loc='upper right')
     plt.tight_layout()
@@ -90,7 +90,7 @@ def plot_solution(detection_map: np.array,
                   bicubic: bool = True) -> None:
     """
     Plots the solution plan over the detection map
-    Args:
+    Arguments:
         detection_map: 2D numpy array of detection probabilities
         solution_plan: List of path segments (from path_finding)
         boundaries: Boundaries object containing geographic limits
@@ -153,27 +153,37 @@ def parse_args() -> dict:
     scenario_json        = sys.argv[1]
     tolerance            = float(sys.argv[2])
     execution_parameters = {}
+
+    # Depending on execution type, path can be different
     try:
         with open(json_path, 'r', encoding='utf-8') as file:
-            data = json.load(file)
-            for entry in data:
-                key = list(entry.keys())[0]
-                if key == scenario_json:
-                    execution_parameters = entry[key]
-                    break
+            execution_parameters = retrieve_file_info(execution_parameters, file, scenario_json)
 
+    # Fallback if ran inside the main folder
     except FileNotFoundError:
         alternative_json_path = f"{os.getcwd()}/components/scenarios.json"
         with open(alternative_json_path, 'r', encoding='utf-8') as file:
-            data = json.load(file)
-            for entry in data:
-                key = list(entry.keys())[0]
-                if key == scenario_json:
-                    execution_parameters = entry[key]
-                    break
+            execution_parameters = retrieve_file_info(execution_parameters, file, scenario_json)
 
     execution_parameters["tolerance"] = tolerance
     return execution_parameters
+
+def retrieve_file_info(execution_parameters, file, scenario_json):
+    """
+    Retrieves information from file, to avoid duplicate code inside the function
+    Arguments:
+        execution_parameters: Dictionary of execution parameters
+        file: File descriptor from context manager
+        scenario_json: Path to the scenario json file
+    """
+    data = json.load(file)
+    for entry in data:
+        key = list(entry.keys())[0]
+        if key == scenario_json:
+            execution_parameters = entry[key]
+            break
+    return execution_parameters
+
 
 # System's main function
 def main() -> None:
@@ -216,7 +226,7 @@ def main() -> None:
 
     # Compute the solution
     solution_plan, nodes_expanded = path_finding(graph=directed_graph,
-                                                 heuristic_function=h2,
+                                                 heuristic_function=h1,
                                                  locations=points_of_interest,
                                                  initial_location_index=0,
                                                  boundaries=boundaries,

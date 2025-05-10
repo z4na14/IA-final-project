@@ -21,41 +21,59 @@ def h2(current_node, objective_node) -> np.float32:
     return h
 
 def build_graph(detection_map: np.array, tolerance: np.float32) -> nx.DiGraph:
-    """ Builds an adjacency graph (not an adjacency matrix) from the detection map """
-    directer_graph = nx.DiGraph()
+    """Builds a directed graph from the detection map with proper node validation"""
+    graph = nx.DiGraph()
     height, width = detection_map.shape
 
-    for i in range(height):
-        for j in range(width):
-            # Only add nodes with detection probability <= tolerance
-            if detection_map[i, j] <= tolerance:
-                # If node was already added by function add_edge, DiGraph implementation won't throw any errors
-                directer_graph.add_node((i, j))
+    # First pass: Add all nodes to ensure complete coordinate space
+    for y in range(height):
+        for x in range(width):
+            graph.add_node((int(y), int(x)))  # Ensure native Python ints
 
-                # Check all 4 possible neighbors
-                for di, dj in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
-                    ni, nj = i + di, j + dj
-                    if 0 <= ni < height and 0 <= nj < width and detection_map[ni, nj] <= tolerance:
-                        # Edge weight is the detection probability of the destination node
-                        directer_graph.add_edge((i, j), (ni, nj), weight=detection_map[ni, nj])
+    # Second pass: Connect valid edges
+    for y in range(height):
+        for x in range(width):
+            current = (y, x)
 
-    return directer_graph
+            # Skip if current node is above tolerance
+            if detection_map[y, x] > tolerance:
+                continue
 
-def discretize_coords(high_level_plan: np.array, boundaries: Boundaries, map_width: np.int32, map_height: np.int32) -> np.array:
-    """ Converts coordiantes from (lat, lon) into (x, y) """
+            # Check all 4 possible neighbors
+            for dy, dx in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+                ny, nx = y + dy, x + dx
+
+                # Validate neighbor coordinates
+                if 0 <= ny < height and 0 <= nx < width:
+                    neighbor = (ny, nx)
+
+                    # Only add edge if destination is below tolerance
+                    if detection_map[ny, nx] <= tolerance:
+                        graph.add_edge(current, neighbor, weight=detection_map[ny, nx])
+
+    return graph
+
+def discretize_coords(high_level_plan: np.array, boundaries: Boundaries,
+                      map_width: np.int32, map_height: np.int32) -> np.array:
+    """Converts coordinates with boundary checking"""
     discretized = []
-
     for lat, lon in high_level_plan:
-        # Normalize coordinates to [0, 1] range
+        # Clamp coordinates to valid range first
+        lat = np.clip(lat, boundaries.min_lat, boundaries.max_lat)
+        lon = np.clip(lon, boundaries.min_lon, boundaries.max_lon)
+
+        # Then discretize
         norm_lat = (lat - boundaries.min_lat) / (boundaries.max_lat - boundaries.min_lat)
         norm_lon = (lon - boundaries.min_lon) / (boundaries.max_lon - boundaries.min_lon)
 
-        # Scale to grid dimensions
         x = int(norm_lon * (map_width - 1))
         y = int(norm_lat * (map_height - 1))
 
-        discretized.append((y, x))  # Using (row, col) convention
+        # Ensure we stay within grid bounds
+        x = np.clip(x, 0, map_width - 1)
+        y = np.clip(y, 0, map_height - 1)
 
+        discretized.append((y, x))
     return np.array(discretized)
 
 def path_finding(graph: nx.DiGraph,
@@ -65,51 +83,59 @@ def path_finding(graph: nx.DiGraph,
                  boundaries: Boundaries,
                  map_width: np.int32,
                  map_height: np.int32) -> tuple:
-    """ Implementation of the main searching / path finding algorithm """
+    """Robust path finding with coordinate validation and error handling"""
     global NODES_EXPANDED
 
-    # Discretize the POIs coordinates
+    # Discretize coordinates with boundary checking
     discretized_locations = discretize_coords(locations, boundaries, map_width, map_height)
-
     solution_plan = []
     total_nodes_expanded = 0
 
-    # Visit all POIs in order starting from initial_location_index
-    current_location = discretized_locations[initial_location_index]
+    # Convert to list of tuples with native Python ints
+    discretized_locations = [(int(y), int(x)) for y, x in discretized_locations]
 
-    for i in range(initial_location_index + 1, len(discretized_locations)):
-        next_location = discretized_locations[i]
+    # Visit POIs in sequence
+    for i in range(initial_location_index, len(discretized_locations) - 1):
+        start = discretized_locations[i]
+        end = discretized_locations[i + 1]
+
+        # Validate nodes exist in graph
+        if start not in graph:
+            print(f"Warning: Start node {start} not in graph (possibly in no-fly zone)")
+            continue
+        if end not in graph:
+            print(f"Warning: Target node {end} not in graph (possibly in no-fly zone)")
+            continue
 
         try:
-            # Reset nodes expanded counter
-            NODES_EXPANDED = 0
+            NODES_EXPANDED = 0  # Reset counter
 
-            # Find path using A* with the specified heuristic
-            path = nx.astar_path(graph, tuple(current_location), tuple(next_location),
-                                 heuristic=heuristic_function, weight='weight')
+            # Find path with type-safe coordinates
+            path = nx.astar_path(
+                graph,
+                tuple(start),  # Ensure tuple type
+                tuple(end),
+                heuristic=heuristic_function,
+                weight='weight'
+            )
 
             # Convert path to include both coordinate systems
             path_segment = []
             for y, x in path:
-                # Calculate geodetic coordinates
                 lat = boundaries.min_lat + (y / (map_height - 1)) * (boundaries.max_lat - boundaries.min_lat)
                 lon = boundaries.min_lon + (x / (map_width - 1)) * (boundaries.max_lon - boundaries.min_lon)
 
-                # Store both coordinate systems
                 path_segment.append({
-                    'grid': (y, x),  # Grid coordinates for graph operations
-                    'geo': (lat, lon)  # Geodetic coordinates for visualization
+                    'grid': (int(y), int(x)),  # Ensure native ints
+                    'geo': (float(lat), float(lon))
                 })
 
             solution_plan.append(path_segment)
             total_nodes_expanded += NODES_EXPANDED
 
-            # Move to next location
-            current_location = next_location
-
         except nx.NetworkXNoPath:
-            print(f"No path found from {current_location} to {next_location}")
-            return None, 0
+            print(f"No valid path from {start} to {end}")
+            continue
 
     return solution_plan, total_nodes_expanded
 
