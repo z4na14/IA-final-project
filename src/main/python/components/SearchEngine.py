@@ -1,6 +1,7 @@
 import numpy as np
 import networkx as nx
 from .Boundaries import Boundaries
+from tqdm import tqdm
 
 
 # Number of nodes expanded in the heuristic search (stored in a global variable to be updated from the heuristic functions)
@@ -40,16 +41,16 @@ def build_graph(detection_map: np.array, tolerance: np.float32) -> nx.DiGraph:
                 continue
 
             # Check all 4 possible neighbors
-            for dy, dx in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
-                ny, nx = y + dy, x + dx
+            for distance_y, distance_x in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+                neighbour_y, neighbour_x = y + distance_y, x + distance_x
 
                 # Validate neighbor coordinates
-                if 0 <= ny < height and 0 <= nx < width:
-                    neighbor = (ny, nx)
+                if 0 <= neighbour_y < height and 0 <= neighbour_x < width:
+                    neighbor = (neighbour_y, neighbour_x)
 
                     # Only add edge if destination is below tolerance
-                    if detection_map[ny, nx] <= tolerance:
-                        graph.add_edge(current, neighbor, weight=detection_map[ny, nx])
+                    if detection_map[neighbour_y, neighbour_x] <= tolerance:
+                        graph.add_edge(current, neighbor, weight=detection_map[neighbour_y, neighbour_x])
 
     return graph
 
@@ -95,7 +96,7 @@ def path_finding(graph: nx.DiGraph,
     discretized_locations = [(int(y), int(x)) for y, x in discretized_locations]
 
     # Visit POIs in sequence
-    for i in range(initial_location_index, len(discretized_locations) - 1):
+    for i in tqdm(range(initial_location_index, len(discretized_locations) - 1), desc="Finding path between POIs"):
         start = discretized_locations[i]
         end = discretized_locations[i + 1]
 
@@ -111,13 +112,11 @@ def path_finding(graph: nx.DiGraph,
             NODES_EXPANDED = 0  # Reset counter
 
             # Find path with type-safe coordinates
-            path = nx.astar_path(
-                graph,
-                tuple(start),  # Ensure tuple type
-                tuple(end),
-                heuristic=heuristic_function,
-                weight='weight'
-            )
+            path = nx.astar_path(graph,
+                                tuple(start),  # Ensure tuple type
+                                tuple(end),
+                                heuristic=heuristic_function,
+                                weight='weight')
 
             # Convert path to include both coordinate systems
             path_segment = []

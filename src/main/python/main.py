@@ -79,7 +79,6 @@ def plot_detection_fields(detection_map: np.array,
              [boundaries.max_lat, boundaries.max_lat, boundaries.min_lat, boundaries.min_lat, boundaries.max_lat],
              'k--', linewidth=1)
 
-    plt.legend(loc='upper right')
     plt.tight_layout()
     plt.show()
     return
