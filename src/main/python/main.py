@@ -227,7 +227,6 @@ def main() -> None:
         points_of_interest = np.array(execution_parameters['POIs'], dtype=np.float32)
 
         try:
-
             # Compute the solution
             solution_plan, nodes_expanded = path_finding(graph=directed_graph,
                                                          heuristic_function=h1,
@@ -246,7 +245,6 @@ def main() -> None:
             print("- Increase the tolerance value")
             print("- Adjust radar positions")
             print("- Modify POI locations")
-            sys.exit(1)
 
         # Some verbose of the total cost and the number of expanded nodes
         print(f"Total path cost: {path_cost}")

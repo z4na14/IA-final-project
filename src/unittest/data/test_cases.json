@@ -1,0 +1,88 @@
+{
+  "test_cases": [
+    {
+      "test_case_id": "TC-001",
+      "description": "Tolerance set to 0 (impossible)",
+      "scenario": "scenario_0",
+      "tolerance": 0.0,
+      "expected_error": "ValueError: Tolerance must be > ε (1e-4)"
+    },
+    {
+      "test_case_id": "TC-002",
+      "description": "Negative tolerance value",
+      "scenario": "scenario_1",
+      "tolerance": -0.1,
+      "expected_error": "ValueError: Tolerance must be between epsilon and 1.0"
+    },
+    {
+      "test_case_id": "TC-003",
+      "description": "Tolerance > 1.0",
+      "scenario": "scenario_2",
+      "tolerance": 1.1,
+      "expected_error": "ValueError: Tolerance must be between ε and 1.0"
+    },
+    {
+      "test_case_id": "TC-004",
+      "description": "Non-existent scenario",
+      "scenario": "scenario_99",
+      "tolerance": 0.5,
+      "expected_error": "KeyError: Scenario 'scenario_99' not found"
+    },
+    {
+      "test_case_id": "TC-005",
+      "description": "Missing tolerance argument",
+      "scenario": "scenario_3",
+      "tolerance": null,
+      "expected_error": "IndexError: Missing required tolerance argument"
+    },
+    {
+      "test_case_id": "TC-007",
+      "description": "Isolated POI (no connecting path)",
+      "scenario": "scenario_5",
+      "tolerance": 0.3,
+      "expected_error": "RuntimeError: No valid path exists between POIs"
+    },
+    {
+      "test_case_id": "TC-008",
+      "description": "Large grid with very low tolerance",
+      "scenario": "scenario_8",
+      "tolerance": 0.05,
+      "expected_error": "RuntimeError: Pathfinding aborted - Insufficient navigable area"
+    },
+    {
+      "test_case_id": "TC-009",
+      "description": "Maximum grid size with default recursion limit",
+      "scenario": "scenario_9",
+      "tolerance": 0.5,
+      "expected_error": "RecursionError: Maximum recursion depth exceeded"
+    },
+    {
+      "test_case_id": "TC-010",
+      "description": "Malformed coordinate input",
+      "scenario": "scenario_0_corrupt",
+      "tolerance": 0.5,
+      "expected_error": "ValueError: Invalid POI coordinates"
+    },
+    {
+      "test_case_id": "TC-011",
+      "description": "All POIs in high-detection areas",
+      "scenario": "scenario_6",
+      "tolerance": 0.001,
+      "expected_error": "RuntimeError: Empty graph - all nodes exceed tolerance"
+    },
+    {
+      "test_case_id": "TC-012",
+      "description": "Single POI (no path needed)",
+      "scenario": "scenario_0_single",
+      "tolerance": 0.5,
+      "expected_error": "ValueError: At least 2 POIs required for pathfinding"
+    },
+    {
+      "test_case_id": "TC-014",
+      "description": "Non-numeric tolerance",
+      "scenario": "scenario_2",
+      "tolerance": "high",
+      "expected_error": "TypeError: Tolerance must be numeric"
+    }
+  ]
+}

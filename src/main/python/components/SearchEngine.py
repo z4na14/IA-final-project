@@ -56,6 +56,8 @@ def build_graph(detection_map: np.array, tolerance: np.float32) -> nx.DiGraph:
     # Verify graph connectivity
     if graph.number_of_nodes() == 0:
         raise ValueError("Empty graph - all nodes exceed tolerance")
+    elif graph.number_of_nodes() <= 1:
+        raise ValueError("At least 2 POIs required for pathfinding")
 
     return graph
 
