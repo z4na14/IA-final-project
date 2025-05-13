@@ -29,7 +29,8 @@ def build_graph(detection_map: np.array, tolerance: np.float32) -> nx.DiGraph:
     # First pass: Add all nodes to ensure complete coordinate space
     for y in range(height):
         for x in range(width):
-            graph.add_node((int(y), int(x)))  # Ensure native Python ints
+            if detection_map[y, x] <= tolerance:
+                graph.add_node((int(y), int(x)))
 
     # Second pass: Connect valid edges
     for y in range(height):
@@ -51,6 +52,10 @@ def build_graph(detection_map: np.array, tolerance: np.float32) -> nx.DiGraph:
                     # Only add edge if destination is below tolerance
                     if detection_map[neighbour_y, neighbour_x] <= tolerance:
                         graph.add_edge(current, neighbor, weight=detection_map[neighbour_y, neighbour_x])
+
+    # Verify graph connectivity
+    if graph.number_of_nodes() == 0:
+        raise ValueError("Empty graph - all nodes exceed tolerance")
 
     return graph
 
@@ -87,13 +92,17 @@ def path_finding(graph: nx.DiGraph,
     """Robust path finding with coordinate validation and error handling"""
     global NODES_EXPANDED
 
-    # Discretize coordinates with boundary checking
-    discretized_locations = discretize_coords(locations, boundaries, map_width, map_height)
+    try:
+        # Discretize coordinates with boundary checking
+        discretized_locations = discretize_coords(locations, boundaries, map_width, map_height)
+        # Convert to list of tuples with native Python ints
+        discretized_locations = [(int(y), int(x)) for y, x in discretized_locations]
+    except Exception as error:
+        raise ValueError(f"Coordinate discretization failed: {str(error)}")
+
     solution_plan = []
     total_nodes_expanded = 0
-
-    # Convert to list of tuples with native Python ints
-    discretized_locations = [(int(y), int(x)) for y, x in discretized_locations]
+    has_invalid_path = False
 
     # Visit POIs in sequence
     for i in tqdm(range(initial_location_index, len(discretized_locations) - 1), desc="Finding path between POIs"):
@@ -102,11 +111,13 @@ def path_finding(graph: nx.DiGraph,
 
         # Validate nodes exist in graph
         if start not in graph:
-            print(f"Warning: Start node {start} not in graph (possibly in no-fly zone)")
-            continue
+            print(f"Warning: Target node {start} not in graph (possibly in no-fly zone)")
+            has_invalid_path = True
+            break
         if end not in graph:
             print(f"Warning: Target node {end} not in graph (possibly in no-fly zone)")
-            continue
+            has_invalid_path = True
+            break
 
         try:
             NODES_EXPANDED = 0  # Reset counter
@@ -134,7 +145,15 @@ def path_finding(graph: nx.DiGraph,
 
         except nx.NetworkXNoPath:
             print(f"No valid path from {start} to {end}")
-            continue
+            has_invalid_path = True
+            break
+
+        except Exception as error:
+            print(f"Critical: Pathfinding failed between {start} and {end}: {str(error)}")
+            has_invalid_path = True
+            break
+
+    if has_invalid_path: raise RuntimeError("Pathfinding aborted due to invalid path segment")
 
     return solution_plan, total_nodes_expanded
 

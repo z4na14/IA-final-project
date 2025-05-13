@@ -185,61 +185,82 @@ def retrieve_file_info(execution_parameters, file, scenario_json):
 
 # System's main function
 def main() -> None:
-    # Parse the input parameters (arguments) of the program (current execution)
-    execution_parameters = parse_args()
+    try:
+        # Parse the input parameters (arguments) of the program (current execution)
+        execution_parameters = parse_args()
 
-    # Set the pseudo-random number generator seed (DO NOT MODIFY)
-    np.random.seed(42)
+        # Set the pseudo-random number generator seed (DO NOT MODIFY)
+        np.random.seed(42)
 
-    # Set boundaries
-    boundaries = Boundaries(max_lat=execution_parameters['max_lat'],
-                            min_lat=execution_parameters['min_lat'],
-                            max_lon=execution_parameters['max_lon'],
-                            min_lon=execution_parameters['min_lon'])
-    
-    # Define the map with its corresponding boundaries and coordinates
-    radar_map = Map(boundaries=boundaries,
-            height=execution_parameters['H'],
-            width=execution_parameters['W'])
-    
-    # Generate random radars
-    n_radars = execution_parameters['n_radars']
-    radar_map.generate_radars(n_radars=n_radars)
-    radar_locations = radar_map.get_radars_locations_numpy()
+        # Set boundaries
+        boundaries = Boundaries(max_lat=execution_parameters['max_lat'],
+                                min_lat=execution_parameters['min_lat'],
+                                max_lon=execution_parameters['max_lon'],
+                                min_lon=execution_parameters['min_lon'])
 
-    # Plot the radar locations (latitude increments from bottom to top)
-    plot_radar_locations(boundaries=boundaries, radar_locations=radar_locations)
+        # Define the map with its corresponding boundaries and coordinates
+        radar_map = Map(boundaries=boundaries,
+                        height=execution_parameters['H'],
+                        width=execution_parameters['W'])
 
-    # Compute the detection map (sets the costs for each cell)
-    detection_map = radar_map.compute_detection_map()
+        # Generate random radars
+        n_radars = execution_parameters['n_radars']
+        radar_map.generate_radars(n_radars=n_radars)
+        radar_locations = radar_map.get_radars_locations_numpy()
 
-    # Plot the detection map (detection fields)
-    plot_detection_fields(detection_map=detection_map, boundaries=boundaries)
+        # Plot the radar locations (latitude increments from bottom to top)
+        plot_radar_locations(boundaries=boundaries, radar_locations=radar_locations)
 
-    # Build the graph from the detection map
-    directed_graph = build_graph(detection_map=detection_map, tolerance=execution_parameters['tolerance'])
+        # Compute the detection map (sets the costs for each cell)
+        detection_map = radar_map.compute_detection_map(use_cache=True)
 
-    # Get the POI's that the plane must visit
-    points_of_interest = np.array(execution_parameters['POIs'], dtype=np.float32)
+        # Plot the detection map (detection fields)
+        plot_detection_fields(detection_map=detection_map, boundaries=boundaries)
 
-    # Compute the solution
-    solution_plan, nodes_expanded = path_finding(graph=directed_graph,
-                                                 heuristic_function=h1,
-                                                 locations=points_of_interest,
-                                                 initial_location_index=0,
-                                                 boundaries=boundaries,
-                                                 map_width=radar_map.width,
-                                                 map_height=radar_map.height)
-    
-    # Compute the solution cost
-    path_cost = compute_path_cost(graph=directed_graph, solution_plan=solution_plan)
+        # To clear old cache (e.g., >2 days old)
+        radar_map.clear_cache(older_than_days=2)
 
-    # Some verbose of the total cost and the number of expanded nodes
-    print(f"Total path cost: {path_cost}")
-    print(f"Number of expanded nodes: {nodes_expanded}")
+        # Build the graph from the detection map
+        directed_graph = build_graph(detection_map=detection_map, tolerance=execution_parameters['tolerance'])
 
-    # Plot the solution
-    plot_solution(detection_map=detection_map, boundaries=boundaries, solution_plan=solution_plan)
+        # Get the POI's that the plane must visit
+        points_of_interest = np.array(execution_parameters['POIs'], dtype=np.float32)
+
+        try:
+
+            # Compute the solution
+            solution_plan, nodes_expanded = path_finding(graph=directed_graph,
+                                                         heuristic_function=h1,
+                                                         locations=points_of_interest,
+                                                         initial_location_index=0,
+                                                         boundaries=boundaries,
+                                                         map_width=radar_map.width,
+                                                         map_height=radar_map.height)
+
+            # Compute the solution cost
+            path_cost = compute_path_cost(graph=directed_graph, solution_plan=solution_plan)
+
+        except RuntimeError as error:
+            print(f"Fatal Error: {str(error)}")
+            print("Possible solutions:")
+            print("- Increase the tolerance value")
+            print("- Adjust radar positions")
+            print("- Modify POI locations")
+            sys.exit(1)
+
+        # Some verbose of the total cost and the number of expanded nodes
+        print(f"Total path cost: {path_cost}")
+        print(f"Number of expanded nodes: {nodes_expanded}")
+
+        # Plot the solution
+        plot_solution(detection_map=detection_map, boundaries=boundaries, solution_plan=solution_plan)
+
+        # Get cache size
+        print(f"Cache size: {radar_map.get_cache_size()/1024:.2f} KB")
+
+    except Exception as error:
+        print(f"Program failed: {str(error)}")
+        sys.exit(1)
 
 if __name__ == '__main__':
     main()

@@ -1,6 +1,7 @@
 .idea
 *pycache*
 target
+*map_cache*
 /docs/report/report.fdb_latexmk
 /docs/report/report.fls
 /docs/report/report.bcf
