@@ -16,7 +16,33 @@ titulo: Heuristic Search in Radars
 
 # Introduction
 
-uwu
+## Explanation of the problem
+In the context of the actual aerial surveillance and military operations, the stealth technology has become a key element 
+to successfully complete high risk missions, minimizing detection probability. Despite having advanced radar systems, they 
+still lack some features that  can be exploited through the correct strategy. This project faces the problem of the planification 
+of certain routes for our spying aircraft, whose main objective is to fly over a series of critical zones without being 
+detected by the ground radars in the region.
+
+The main goal consists on designing and implementing a software able to generate a probabilistic map from the physical 
+characteristics of multiple radars, using as a starting point the radar equation. With this map and thanks to heuristic 
+search algorithms, the system needs to calculate the best route allowing the stealth plane visit a series of predefined 
+points of interest (POIs), reducing as much as possible the high risk areas, where radars are located.
+
+For modeling the problem, a bidimensional grid explains the geographical area of interest, assigning at each cell some 
+specific value, which represents the possibility of being detected by one or multiple radars. This possibility is obtained 
+through a gaussian distribution, then, it is normalized in order to obtain probabilities. The resulting map gets transformed 
+into a directed and weighted graph in where every node represents a valid cell and each of the edges an allowed movement 
+between adjacent cells, the weight of the graph is equivalent to the detection cost of the goal cell,
+
+The final system integrates the detection map generation, the construction of the graph and the application of algorithms 
+for the route scheduling. The solution is validated by different experimental scenarios with varying radar distributions and parameters.
+
+## Explanation of the approach
+The different scenarios and distributions of the map have been tested with the pycharm tool, pybuilder, which has helped 
+us thanks to its modular and declarative results, another pycharm tool used has been pylint, which has been very useful 
+in the structuration of the code, ensuring compliance with coding standards and proper code structuration.
+For the collective code manipulation, a private version control (e.g. gitlab) locally hosted, has been used, in order to 
+ease the code sharing, updating and such.
 
 # Explanation of the system
 
