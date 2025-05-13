@@ -46,7 +46,7 @@ ease the code sharing, updating and such.
 
 # Explanation of the system
 
-## Mathematical modeling of the search problem
+## Mathematical modelling of the search problem
 
 #### State Space: 
 Let the state space $S$ be defined as:
@@ -89,7 +89,7 @@ $$
 #### Cost function:
 $$c((y_1,x_1),(y_2,x_2) = \Psi^* (y_2,x_2)$$
 
-## Initial and Goal States
+### Initial and Goal States
 
 #### Initial State:
 $$s_0 = (y_0, x_0) \text{ where }(lat_0, lon_0) \mapsto (y_0,x_0)$$
@@ -108,29 +108,29 @@ A solution is a path $\pi = [s_0, s_1, \text{ ...}, s_n]$ where:
 2. $\forall i, \exists a \in A \text{ such that } s_{i+1} = T(s_i, a)$
 3. Total costs $C(\pi) = \sum_{i = 0}^{n-1} c(s_i, s_{i + 1})$ is minimized
 
-## Heuristics designed
+### Heuristics designed
 
-### Euclidean distance:
+#### Euclidean distance:
   
 $$h_1((y,x),(y_{goal},x_{goal})) = \sqrt{(y - y_{goal})^2 + (x - x_{goal})^2} \cdot \epsilon$$
 
-#### Admissibility Proof:
+##### Admissibility Proof:
 1. Actual path cost between adjacent cells $\geq \epsilon$
 2. Straight-line distance is the minimum possible path length
 3. Thus $h_1 \leq$ actual cost (underestimates)
 
-### Manhattan distance:
+#### Manhattan distance:
   
 $$h_2((y, x), (y_{goal}, x_{goal})) = (|y - y_{goal}| + |x - x_{goal}|) \cdot \epsilon$$
 
-#### Admissibility Proof:
+##### Admissibility Proof:
 1. Manhattan distance $\geq$ Euclidean distance
 2. Each move costs $\geq \epsilon$
 3. Therefore $h_2 \leq$ actual cost (underestimates)
 
-## Map and searh space generation
+### Map and search space generation
 
-### Implementation of the map
+#### Implementation of the map
 Let the rectangular area delimited by geodetic coordinates ($\text{lat}_0 ,\text{long}_0$) ($\text{lat}_1, \text{long}_1$) be devided into a grid $H \times W$. Each cell represents a unique point in where
 - The latitude and longitude intervals are calculated as
 
@@ -188,11 +188,11 @@ $$
 M \in \mathbb{R}^{H \times W}, \quad M[i][j] = \Psi^*_{\text{scaled}}(i,j)
 $$
 
-## Search graph generation
+### Search graph generation
 
 Given the detection map $M$, we construct a directed weighted graph $G = (V, E)$, where:
 
-### Vertices
+#### Vertices
 
 Each vertex $v_{i,j} \in V$ corresponds to a cell $(i,j)$ such that:
 
@@ -202,7 +202,7 @@ $$
 
 Only these vertices are considered traversable by the spy plane.
 
-### Edges
+#### Edges
 
 An edge exists between vertex $v_{i,j}$ and its valid neighbors $v_{i',j'}$ if:
 
@@ -227,9 +227,36 @@ That is, the cost of moving from a cell to a neighbor is the detection cost of t
 The graph is stored in memory as an adjacency list or adjacency matrix, depending on the implementation.
 
 
+## Logical modelling of the system
+
+Hablar sobre como hemos estructurado el codigo
+
+
 # Experiments
 
-uwu
+The following test cases that are implemented and tested using the pybuilder module, where created taking into
+account all the probable cases where the program could fail, safeguarding from incorrect input and raising the
+appropiate errors.
+
+| test_case_id | description                                    | input                                | expected_error                                                         |
+| ------------ | ---------------------------------------------- | ------------------------------------ | ---------------------------------------------------------------------- |
+| TC-001       | Tolerance set to 0 (impossible)                | `scenario_0 0.0`                     | `ValueError: Tolerance must be > ε (1e-4)`                             |
+| TC-002       | Negative tolerance value                       | `scenario_1 -0.1`                    | `ValueError: Tolerance must be between ε and 1.0`                      |
+| TC-003       | Tolerance > 1.0                                | `scenario_2 1.1`                     | `ValueError: Tolerance must be between ε and 1.0`                      |
+| TC-004       | Non-existent scenario                          | `scenario_99 0.5`                    | `KeyError: Scenario 'scenario_99' not found`                           |
+| TC-005       | Missing tolerance argument                     | `scenario_3`                         | `IndexError: Missing required tolerance argument`                      |
+| TC-006       | POI in no-fly zone (high detection)            | `scenario_4 0.01`                    | `RuntimeError: Pathfinding aborted - Start/Target node in no-fly zone` |
+| TC-007       | Isolated POI (no connecting path)              | `scenario_5 0.3`                     | `RuntimeError: No valid path exists between POIs`                      |
+| TC-008       | Large grid with very low tolerance             | `scenario_8 0.05`                    | `RuntimeError: Pathfinding aborted - Insufficient navigable area`      |
+| TC-009       | Maximum grid size with default recursion limit | `scenario_9 0.5`                     | `RecursionError: Maximum recursion depth exceeded`                     |
+| TC-010       | Malformed coordinate input                     | `scenario_0 0.5` (with corrupt POIs) | `ValueError: Invalid POI coordinates`                                  |
+| TC-011       | All POIs in high-detection areas               | `scenario_6 0.001`                   | `RuntimeError: All POIs are in no-fly zones`                           |
+| TC-012       | Single POI (no path needed)                    | `scenario_0 0.5` (with 1 POI)        | `ValueError: At least 2 POIs required for pathfinding`                 |
+| TC-013       | POI exactly at radar location                  | `scenario_1 0.5` (POI = radar loc)   | `RuntimeError: POI coincides with radar location`                      |
+| TC-014       | Non-numeric tolerance                          | `scenario_2 "high"`                  | `TypeError: Tolerance must be numeric`                                 |
+
+In order to set up the environment and run the test cases, follow the README.md from the root of the zip file.
+
 
 # Use of AI
 
