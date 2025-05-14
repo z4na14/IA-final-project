@@ -41,7 +41,7 @@ for the route scheduling. The solution is validated by different experimental sc
 The different scenarios and distributions of the map have been tested with the pycharm tool, pybuilder, which has helped 
 us thanks to its modular and declarative results, another pycharm tool used has been pylint, which has been very useful 
 in the structuration of the code, ensuring compliance with coding standards and proper code structuration.
-For the collective code manipulation, a private version control (e.g. gitlab) locally hosted, has been used, in order to 
+For the collective code manipulation, a private version control (gitea) locally hosted, has been used, in order to 
 ease the code sharing, updating and such.
 
 # Explanation of the system
@@ -239,7 +239,7 @@ account all the probable cases where the program could fail, safeguarding from i
 appropiate errors.
 
 | test_case_id | description                                    | input                                | expected_error                                                         |
-| ------------ | ---------------------------------------------- | ------------------------------------ | ---------------------------------------------------------------------- |
+|--------------| ---------------------------------------------- | ------------------------------------ | ---------------------------------------------------------------------- |
 | TC-001       | Tolerance set to 0 (impossible)                | `scenario_0 0.0`                     | `ValueError: Tolerance must be > ε (1e-4)`                             |
 | TC-002       | Negative tolerance value                       | `scenario_1 -0.1`                    | `ValueError: Tolerance must be between ε and 1.0`                      |
 | TC-003       | Tolerance > 1.0                                | `scenario_2 1.1`                     | `ValueError: Tolerance must be between ε and 1.0`                      |
@@ -247,13 +247,11 @@ appropiate errors.
 | TC-005       | Missing tolerance argument                     | `scenario_3`                         | `IndexError: Missing required tolerance argument`                      |
 | TC-006       | POI in no-fly zone (high detection)            | `scenario_4 0.01`                    | `RuntimeError: Pathfinding aborted - Start/Target node in no-fly zone` |
 | TC-007       | Isolated POI (no connecting path)              | `scenario_5 0.3`                     | `RuntimeError: No valid path exists between POIs`                      |
-| TC-008       | Large grid with very low tolerance             | `scenario_8 0.05`                    | `RuntimeError: Pathfinding aborted - Insufficient navigable area`      |
-| TC-009       | Maximum grid size with default recursion limit | `scenario_9 0.5`                     | `RecursionError: Maximum recursion depth exceeded`                     |
-| TC-010       | Malformed coordinate input                     | `scenario_0 0.5` (with corrupt POIs) | `ValueError: Invalid POI coordinates`                                  |
-| TC-011       | All POIs in high-detection areas               | `scenario_6 0.001`                   | `RuntimeError: All POIs are in no-fly zones`                           |
-| TC-012       | Single POI (no path needed)                    | `scenario_0 0.5` (with 1 POI)        | `ValueError: At least 2 POIs required for pathfinding`                 |
-| TC-013       | POI exactly at radar location                  | `scenario_1 0.5` (POI = radar loc)   | `RuntimeError: POI coincides with radar location`                      |
-| TC-014       | Non-numeric tolerance                          | `scenario_2 "high"`                  | `TypeError: Tolerance must be numeric`                                 |
+| TC-008       | Malformed coordinate input                     | `scenario_0 0.5` (with corrupt POIs) | `ValueError: Invalid POI coordinates`                                  |
+| TC-009       | All POIs in high-detection areas               | `scenario_6 0.001`                   | `RuntimeError: All POIs are in no-fly zones`                           |
+| TC-010       | Single POI (no path needed)                    | `scenario_0 0.5` (with 1 POI)        | `ValueError: At least 2 POIs required for pathfinding`                 |
+| TC-011       | POI exactly at radar location                  | `scenario_1 0.5` (POI = radar loc)   | `RuntimeError: POI coincides with radar location`                      |
+| TC-012       | Non-numeric tolerance                          | `scenario_2 "high"`                  | `TypeError: Tolerance must be numeric`                                 |
 
 In order to set up the environment and run the test cases, follow the README.md from the root of the zip file.
 

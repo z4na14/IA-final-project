@@ -33,16 +33,16 @@ class TestRadarPathfinder(unittest.TestCase):
             raise RuntimeError("Invalid test cases JSON format") from exception
 
         # Change directory to components folder to store and retrieve the cached information from there
-        os.chdir("./src/main/python/components")
+        os.chdir("./src/main/python")
 
     def test_radar_pathfinder_scenarios(self):
         """Run all test cases dynamically from JSON data."""
         for case in self.test_data:
             with self.subTest(case_id=case["test_case_id"]):
                 # Prepare system arguments
-                sys.argv = ["main.py", case["scenario"], str(case["tolerance"])]
+                sys.argv = ["main.py", case["scenario"], str(case["tolerance"]), "-d"]
 
-                with self.assertRaises(literal_eval(case["expected_error"].split(":")[0])) as context:
+                with self.assertRaises(eval(case["expected_error"].split(":")[0])):
                     # Execute main function
                     main()
                     self.assertIn(case["expected_error"], str(context.exception))
@@ -61,7 +61,7 @@ class TestRadarPathfinder(unittest.TestCase):
         detection_map = test_map.compute_detection_map(use_cache=False)
         directed_graph = build_graph(detection_map=detection_map, tolerance=0.01)
 
-        with self.assertRaises(RuntimeError) as context:
+        with self.assertRaises(RuntimeError):
             path_finding(graph=directed_graph,
                          heuristic_function=h1,
                          locations=points_of_interest,

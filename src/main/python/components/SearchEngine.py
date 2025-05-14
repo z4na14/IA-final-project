@@ -23,6 +23,16 @@ def h2(current_node, objective_node) -> np.float32:
 
 def build_graph(detection_map: np.array, tolerance: np.float32) -> nx.DiGraph:
     """Builds a directed graph from the detection map with proper node validation"""
+    if tolerance <= 1e-4:
+        raise ValueError("Tolerance must be greater than 1e-4")
+    elif tolerance > 1:
+        raise ValueError("Tolerance must be between 1e-4 and 1")
+    elif tolerance == None:
+        raise ValueError("Missing required tolerance argument")
+    elif type(tolerance) != np.float32 and type(tolerance) != float:
+        raise TypeError("Tolerance must be numeric")
+
+
     graph = nx.DiGraph()
     height, width = detection_map.shape
 
@@ -56,8 +66,6 @@ def build_graph(detection_map: np.array, tolerance: np.float32) -> nx.DiGraph:
     # Verify graph connectivity
     if graph.number_of_nodes() == 0:
         raise ValueError("Empty graph - all nodes exceed tolerance")
-    elif graph.number_of_nodes() <= 1:
-        raise ValueError("At least 2 POIs required for pathfinding")
 
     return graph
 
@@ -101,6 +109,9 @@ def path_finding(graph: nx.DiGraph,
         discretized_locations = [(int(y), int(x)) for y, x in discretized_locations]
     except Exception as error:
         raise ValueError(f"Coordinate discretization failed: {str(error)}")
+
+    if len(discretized_locations) <= 1:
+        raise ValueError("At least 2 POIs required for pathfinding")
 
     solution_plan = []
     total_nodes_expanded = 0
@@ -151,9 +162,12 @@ def path_finding(graph: nx.DiGraph,
             break
 
         except Exception as error:
-            print(f"Critical: Pathfinding failed between {start} and {end}: {str(error)}")
+            print(f"Pathfinding failed between {start} and {end}: {str(error)}")
             has_invalid_path = True
             break
+
+    if total_nodes_expanded == 0:
+        raise RuntimeError("Empty graph - all nodes exceed tolerance")
 
     if has_invalid_path: raise RuntimeError("Pathfinding aborted due to invalid path segment")
 
