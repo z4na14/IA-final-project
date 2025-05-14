@@ -1,3 +1,5 @@
+Directory structure:
+
 ```
 .
 ├── build.py
@@ -14,25 +16,25 @@
 ├── requirements.txt
 ├── setup.py
 ├── README.md
-├── src
-│   ├── main
-│   │   └── python
-│   │       ├── components
-│   │       │   ├── Boundaries.py
-│   │       │   ├── Location.py
-│   │       │   ├── Map.py
-│   │       │   ├── Radar.py
-│   │       │   ├── scenarios.json
-│   │       │   └── SearchEngine.py
-│   │       ├── main.py
-│   └── unittest
-│       ├── data
-│       │   └── test_cases.json
-│       └── python
-│           └── test_map_radar_tests.py
+└── src
+    ├── main
+    │   └── python
+    │       ├── components
+    │       │   ├── Boundaries.py
+    │       │   ├── Location.py
+    │       │   ├── Map.py
+    │       │   ├── Radar.py
+    │       │   ├── scenarios.json
+    │       │   └── SearchEngine.py
+    │       ├── main.py
+    └── unittest
+        ├── data
+        │   └── test_cases.json
+        └── python
+            └── test_map_radar_tests.py
 ```
 
-Where the requirements are listed insisde the `requirements.txt`, installable by running:
+The requirements are listed in `requirements.txt`, installable by running:
 
 ```
 pip install -r requirements.txt
@@ -42,4 +44,12 @@ And the project ran using:
 
 ```
 python ./src/main/python/main.py scenario_X 0.X
+```
+
+To run pybuilder with the respective developed tests:
+
+```
+pyb
+```
+```
 ```
