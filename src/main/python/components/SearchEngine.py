@@ -1,10 +1,12 @@
 import numpy as np
 import networkx as nx
-from .Boundaries import Boundaries
 from tqdm import tqdm
 
+from .Boundaries import Boundaries
 
-# Number of nodes expanded in the heuristic search (stored in a global variable to be updated from the heuristic functions)
+
+# Number of nodes expanded in the heuristic search (stored in a global variable
+# to be updated from the heuristic functions)
 NODES_EXPANDED = 0
 
 def h1(current_node, objective_node) -> np.float32:
@@ -25,11 +27,11 @@ def build_graph(detection_map: np.array, tolerance: np.float32) -> nx.DiGraph:
     """Builds a directed graph from the detection map with proper node validation"""
     if tolerance <= 1e-4:
         raise ValueError("Tolerance must be greater than 1e-4")
-    elif tolerance > 1:
+    if tolerance > 1:
         raise ValueError("Tolerance must be between 1e-4 and 1")
-    elif tolerance == None:
+    if tolerance == None:
         raise ValueError("Missing required tolerance argument")
-    elif type(tolerance) != np.float32 and type(tolerance) != float:
+    if type(tolerance) != np.float32 and type(tolerance) != float:
         raise TypeError("Tolerance must be numeric")
 
 
@@ -61,7 +63,8 @@ def build_graph(detection_map: np.array, tolerance: np.float32) -> nx.DiGraph:
 
                     # Only add edge if destination is below tolerance
                     if detection_map[neighbour_y, neighbour_x] <= tolerance:
-                        graph.add_edge(current, neighbor, weight=detection_map[neighbour_y, neighbour_x])
+                        graph.add_edge(current, neighbor,
+                                       weight=detection_map[neighbour_y, neighbour_x])
 
     # Verify graph connectivity
     if graph.number_of_nodes() == 0:

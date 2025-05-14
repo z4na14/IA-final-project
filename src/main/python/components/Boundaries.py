@@ -1,10 +1,9 @@
 import numpy as np
 
-
 class Boundaries:
     """ Class that defines the limits (in geodetic coordinates) of a map """
-    def __init__(self, 
-                 max_lat: np.float32, 
+    def __init__(self,
+                 max_lat: np.float32,
                  min_lat: np.float32,
                  max_lon: np.float32,
                  min_lon: np.float32):

@@ -4,7 +4,7 @@ from .Location import Location
 
 class Radar:
     """ Class that models the Radar """
-    def __init__(self, 
+    def __init__(self,
                  location:           Location,
                  transmission_power: np.float32,
                  antenna_gain:       np.float32,

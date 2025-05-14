@@ -1,5 +1,3 @@
-from idlelib.config_key import translate_key
-
 import numpy as np
 import matplotlib.pyplot as plt
 import sys
@@ -26,9 +24,11 @@ def plot_radar_locations(boundaries: Boundaries,
     plt.title(title)
 
     # Plot map boundaries
-    plt.plot([boundaries.min_lon, boundaries.max_lon, boundaries.max_lon, boundaries.min_lon, boundaries.min_lon],
-             [boundaries.max_lat, boundaries.max_lat, boundaries.min_lat, boundaries.min_lat, boundaries.max_lat],
-             'k--', linewidth=1, label='Area Boundary')
+    plt.plot([boundaries.min_lon, boundaries.max_lon,
+                    boundaries.max_lon, boundaries.min_lon, boundaries.min_lon],
+                    [boundaries.max_lat, boundaries.max_lat, boundaries.min_lat,
+                    boundaries.min_lat, boundaries.max_lat],
+                    'k--', linewidth=1, label='Area Boundary')
 
     # Plot radars
     plt.scatter(radar_locations[:, 1], radar_locations[:, 0],
@@ -42,7 +42,6 @@ def plot_radar_locations(boundaries: Boundaries,
     plt.tight_layout()
     if not DEBUG:
         plt.show()
-    return
 
 def plot_detection_fields(detection_map: np.array,
                           boundaries: Boundaries,
@@ -79,14 +78,15 @@ def plot_detection_fields(detection_map: np.array,
     plt.ylabel("Latitude")
     plt.grid(True, alpha=0.8, lw=2, ls='--')
     # Plot boundaries
-    plt.plot([boundaries.min_lon, boundaries.max_lon, boundaries.max_lon, boundaries.min_lon, boundaries.min_lon],
-             [boundaries.max_lat, boundaries.max_lat, boundaries.min_lat, boundaries.min_lat, boundaries.max_lat],
+    plt.plot([boundaries.min_lon, boundaries.max_lon,
+              boundaries.max_lon, boundaries.min_lon, boundaries.min_lon],
+             [boundaries.max_lat, boundaries.max_lat, boundaries.min_lat,
+              boundaries.min_lat, boundaries.max_lat],
              'k--', linewidth=1)
 
     plt.tight_layout()
     if not DEBUG:
         plt.show()
-    return
 
 def plot_solution(detection_map: np.array,
                   solution_plan: list,
@@ -150,7 +150,6 @@ def plot_solution(detection_map: np.array,
     plt.tight_layout()
     if not DEBUG:
         plt.show()
-    return
 
 def parse_args() -> dict:
     """ Parses the main arguments of the program and returns them stored in a dictionary """
@@ -164,8 +163,8 @@ def parse_args() -> dict:
     except ValueError as error:
         if error.args[0].split(':')[0] == "could not convert string to float":
             raise TypeError("Tolerance must be numeric")
-        else:
-            raise ValueError(error)
+
+        raise ValueError(error)
 
     global DEBUG
 

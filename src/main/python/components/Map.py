@@ -1,12 +1,13 @@
-from .Location import Location
-from .Boundaries import Boundaries
-from .Radar import Radar
 from tqdm import tqdm
 import numpy as np
 import os
 import pickle
 import hashlib
 from datetime import datetime
+
+from .Location import Location
+from .Boundaries import Boundaries
+from .Radar import Radar
 
 
 # Constant that avoids setting cells to have an associated cost of zero
@@ -31,8 +32,10 @@ class Map:
     def generate_radars(self, n_radars: np.int32) -> None:
         """ Generates n-radars randomly and inserts them into the radars list """
         # Select random coordinates inside the boundaries of the map
-        lat_range = np.linspace(start=self.boundaries.min_lat, stop=self.boundaries.max_lat, num=self.height)
-        lon_range = np.linspace(start=self.boundaries.min_lon, stop=self.boundaries.max_lon, num=self.width)
+        lat_range = np.linspace(start=self.boundaries.min_lat,
+                                stop=self.boundaries.max_lat, num=self.height)
+        lon_range = np.linspace(start=self.boundaries.min_lon,
+                                stop=self.boundaries.max_lon, num=self.width)
         rand_lats = np.random.choice(a=lat_range, size=n_radars, replace=False)
         rand_lons = np.random.choice(a=lon_range, size=n_radars, replace=False)
         self.radars = []        # Initialize 'radars' as an empty list
@@ -51,7 +54,6 @@ class Map:
 
             # Insert the new radar
             self.radars.append(new_radar)
-        return
 
     def get_radars_locations_numpy(self) -> np.array:
         """ Returns an array with the coordiantes (lat, lon) of each radar registered in the map """
