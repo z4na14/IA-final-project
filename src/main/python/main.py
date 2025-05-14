@@ -1,8 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import sys
-import json
-import os
+import sys, os, json
 from components.Map import Map
 from components.Boundaries import Boundaries
 from components.SearchEngine import build_graph, path_finding, compute_path_cost, h1, h2
@@ -270,6 +268,7 @@ def main() -> None:
         # Compute the solution cost
         path_cost = compute_path_cost(graph=directed_graph, solution_plan=solution_plan)
 
+    # In case of error, advise of the cause and solutions
     except RuntimeError as error:
         print(str(error))
         print("Possible solutions:")

@@ -1,9 +1,5 @@
 """Contains the test cases execution of the radar pathfinder"""
-import os
-import unittest
-import json
-import sys
-from ast import literal_eval
+import os, unittest, json, sys
 from pathlib import Path
 import numpy as np
 
@@ -13,7 +9,7 @@ from components.Map import Map, Boundaries
 from components.SearchEngine import path_finding, build_graph, h1
 
 class TestRadarPathfinder(unittest.TestCase):
-    """Class for testing the Radar Pathfinder system"""
+    """ Class for testing the Radar Pathfinder system """
 
     @classmethod
     def setUpClass(cls):
@@ -36,19 +32,19 @@ class TestRadarPathfinder(unittest.TestCase):
         os.chdir("./src/main/python")
 
     def test_radar_pathfinder_scenarios(self):
-        """Run all test cases dynamically from JSON data."""
+        """ Run all test cases dynamically from JSON data """
         for case in self.test_data:
             with self.subTest(case_id=case["test_case_id"]):
                 # Prepare system arguments
                 sys.argv = ["main.py", case["scenario"], str(case["tolerance"]), "-d"]
 
-                with self.assertRaises(eval(case["expected_error"].split(":")[0])):
+                with self.assertRaises(eval(case["expected_error"].split(":")[0])) as context:
                     # Execute main function
                     main()
                     self.assertIn(case["expected_error"], str(context.exception))
 
     def test_map_components(self):
-        """Additional component-level tests"""
+        """ Additional component-level tests """
         np.random.seed(42)
 
         # Test Case 6: POI in no-fly zone
@@ -61,7 +57,7 @@ class TestRadarPathfinder(unittest.TestCase):
         detection_map = test_map.compute_detection_map(use_cache=False)
         directed_graph = build_graph(detection_map=detection_map, tolerance=0.01)
 
-        with self.assertRaises(RuntimeError):
+        with self.assertRaises(RuntimeError) as context:
             path_finding(graph=directed_graph,
                          heuristic_function=h1,
                          locations=points_of_interest,
@@ -70,6 +66,7 @@ class TestRadarPathfinder(unittest.TestCase):
                          map_width=16,
                          map_height=16)
             self.assertIn("Pathfinding aborted due to invalid path segment", str(context.exception))
+
 
 if __name__ == '__main__':
     unittest.main()

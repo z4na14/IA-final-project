@@ -38,13 +38,13 @@ def build_graph(detection_map: np.array, tolerance: np.float32) -> nx.DiGraph:
     graph = nx.DiGraph()
     height, width = detection_map.shape
 
-    # First pass: Add all nodes to ensure complete coordinate space
+    # Add all nodes to ensure complete coordinate space
     for y in range(height):
         for x in range(width):
             if detection_map[y, x] <= tolerance:
                 graph.add_node((int(y), int(x)))
 
-    # Second pass: Connect valid edges
+    # Connect valid edges
     for y in range(height):
         for x in range(width):
             current = (y, x)

@@ -63,7 +63,7 @@ class Map:
         return locations
 
     def compute_detection_map(self, use_cache: bool = True) -> np.array:
-        """Computes or loads detection map with caching support"""
+        """ Computes or loads detection map with caching support """
         # Generate unique cache key based on map parameters
         cache_key = self._generate_cache_key()
         cache_file = os.path.join(self.cache_dir, f"{cache_key}.pkl")
@@ -92,7 +92,7 @@ class Map:
         return detection_map
 
     def _compute_fresh_detection_map(self) -> np.array:
-        """Actual computation without caching"""
+        """ Actual computation without caching """
         lat_points = np.linspace(self.boundaries.min_lat, self.boundaries.max_lat, self.height)
         lon_points = np.linspace(self.boundaries.min_lon, self.boundaries.max_lon, self.width)
 
@@ -120,7 +120,7 @@ class Map:
         return detection_map
 
     def _generate_cache_key(self) -> str:
-        """Generates unique hash key for current map configuration"""
+        """ Generates unique hash key for current map configuration """
         hash_data = {
             'boundaries': (self.boundaries.min_lat, self.boundaries.max_lat,
                            self.boundaries.min_lon, self.boundaries.max_lon),
@@ -135,7 +135,7 @@ class Map:
         return hashlib.md5(hash_str).hexdigest()
 
     def clear_cache(self, older_than_days: int = None):
-        """Clears cache, optionally removing files older than specified days"""
+        """ Clears cache, optionally removing files older than specified days """
         now = datetime.now()
         removed = 0
 
@@ -154,7 +154,7 @@ class Map:
         print(f"Removed {removed} cache files")
 
     def get_cache_size(self) -> int:
-        """Returns total cache size in bytes"""
+        """ Returns total cache size in bytes """
         total_size = 0
         for filename in os.listdir(self.cache_dir):
             filepath = os.path.join(self.cache_dir, filename)
