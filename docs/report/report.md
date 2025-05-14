@@ -54,6 +54,7 @@ Let the state space $S$ be defined as:
 $$S = \{(y,x) \in \mathbb{Z}^2 | 0 \leq y < H, 0 \leq x < W, \Psi^*(y,x) \leq \tau\}$$
 
 where:
+
   - $H \times W$: Dimensions of the grid
   - $\Psi^*: \mathbb{Z}^2 \rightarrow [\epsilon,1]$: Scaled detection probability function
   - $\tau \in (0,1]$: Detection tolerance threshold
@@ -78,6 +79,7 @@ $$
 #### Transaction Function:
 
 $$T:S \times A \rightarrow \text{S }\cup \{\emptyset\}$$
+
 $$
 T((y,x),a) = 
 \begin{cases}
@@ -115,6 +117,7 @@ A solution is a path $\pi = [s_0, s_1, \text{ ...}, s_n]$ where:
 $$h_1((y,x),(y_{goal},x_{goal})) = \sqrt{(y - y_{goal})^2 + (x - x_{goal})^2} \cdot \epsilon$$
 
 ##### Admissibility Proof:
+
 1. Actual path cost between adjacent cells $\geq \epsilon$
 2. Straight-line distance is the minimum possible path length
 3. Thus $h_1 \leq$ actual cost (underestimates)
@@ -124,6 +127,7 @@ $$h_1((y,x),(y_{goal},x_{goal})) = \sqrt{(y - y_{goal})^2 + (x - x_{goal})^2} \c
 $$h_2((y, x), (y_{goal}, x_{goal})) = (|y - y_{goal}| + |x - x_{goal}|) \cdot \epsilon$$
 
 ##### Admissibility Proof:
+
 1. Manhattan distance $\geq$ Euclidean distance
 2. Each move costs $\geq \epsilon$
 3. Therefore $h_2 \leq$ actual cost (underestimates)
@@ -132,6 +136,7 @@ $$h_2((y, x), (y_{goal}, x_{goal})) = (|y - y_{goal}| + |x - x_{goal}|) \cdot \e
 
 #### Implementation of the map
 Let the rectangular area delimited by geodetic coordinates ($\text{lat}_0 ,\text{long}_0$) ($\text{lat}_1, \text{long}_1$) be devided into a grid $H \times W$. Each cell represents a unique point in where
+
 - The latitude and longitude intervals are calculated as
 
 $$
@@ -140,7 +145,9 @@ $$
 \Delta\ long = \frac{long_0-long_1}{W-1}
 \end{matrix}
 $$
+
 - Each cell (i, j) is mapped to a geographic coordinates:  
+
 $$
 lat_i = lat_1 + i \cdot \Delta lat, lon_j = long_0 + j \cdot \Delta lon
 $$
@@ -148,18 +155,25 @@ $$
 For each radar $r_k \in \{1, 2, ..., N_r\}$, located in the coordinates $(lat_k, lon_k)$, we compute:
 
 - The maximum detection range ($R_{max}$) using the provided rada equation.  
+
 $$
  R_{max} = \frac{P_t G^2 \lambda \sigma}{(4 \pi)^3 P_{min} L}
 $$
+
 - The Euclidean distance ($d$) from each grid cell to the radar using the conversion factor $K = 111.000$ (meters per degree)
+
 $$
 d = K\cdot\sqrt{(lat_i-lat_k)^2+(lon_1-lon_k)^2}
 $$
+
 -  If $d \leq R$, compute the detection possibility using the 2D Gaussian function
+
 $$
 \Psi_k^*(i,j) = \frac{e^{-\frac{1}{2}(x - \mu)^T \Sigma^{-1}(x - \mu)}}{(2\pi)^\frac{n}{2} |\Sigma|^\frac{1}{2}}
 $$
-  Where 
+
+  Where
+
    - $x = (lat_i, lon_j)$
    - $\mu = (lat_k, lon_k)$
    - $\Sigma$ is the covariance matrix, typically diagonal (can be fixed for simplification)
@@ -168,7 +182,8 @@ $$
 
 - if $d > R_{max}$, set $\Psi^*_k(i,j) = 0$
 - Then for each cell, compute the maximum detection possibility from all radars:
-$$
+
+- $$
 \Psi^*(i,j) = max_k \Psi^*_k(i,j)
 $$
 
@@ -179,6 +194,7 @@ $$
 $$
 
 where:
+
 - $\Psi_{\min}$ and $\Psi_{\max}$ are the minimum and maximum non-zero detection values in the map.
 - $\epsilon$ is a small positive constant to ensure no cell has cost 0 (e.g., $\epsilon = 0.001$)
 
@@ -229,7 +245,23 @@ The graph is stored in memory as an adjacency list or adjacency matrix, dependin
 
 ## Logical modelling of the system
 
-Hablar sobre como hemos estructurado el codigo
+As mentioned in the introduction, the project was composed to fit the pybuilder integration and pylint code smells
+detection, and the folder structure is available in the README.md, along with every other aspect on how to run the 
+source code, bundled inside the zip file.
+
+As for the intial code, the map representation was modified to represent a more realistic "heat map" of the radar
+detection boundaries, and the path, indicating the POIs and the end of the path with different colors. 
+
+Moreover, a map cache has been implemented to avoid recomputing the whole map over and over again if the tests are run 
+multiple times with different tolerances or heuristics. They have been integrated by storing the hash key of the whole
+data as file name and storing them inside a folder in the component's module.
+
+In addition, when the tests are ran, the maps are computed but not shown to avoid cluttering on the user screen.
+
+On the other hand, when the code detected that a POI was inside a no-fly zone of a certain radar, the program raises
+an error and advises the user to increase the tolerance or change the respective POI. Other possible implementation was
+to ignore completely the POI and compute the path to the rest of possible POIs, but we thought that a real mission
+cannot be completed if the whole set of points cannot be visited.
 
 
 # Experiments
@@ -238,20 +270,18 @@ The following test cases that are implemented and tested using the pybuilder mod
 account all the probable cases where the program could fail, safeguarding from incorrect input and raising the
 appropiate errors.
 
-| test_case_id | description                                    | input                                | expected_error                                                         |
-|--------------| ---------------------------------------------- | ------------------------------------ | ---------------------------------------------------------------------- |
-| TC-001       | Tolerance set to 0 (impossible)                | `scenario_0 0.0`                     | `ValueError: Tolerance must be > ε (1e-4)`                             |
-| TC-002       | Negative tolerance value                       | `scenario_1 -0.1`                    | `ValueError: Tolerance must be between ε and 1.0`                      |
-| TC-003       | Tolerance > 1.0                                | `scenario_2 1.1`                     | `ValueError: Tolerance must be between ε and 1.0`                      |
-| TC-004       | Non-existent scenario                          | `scenario_99 0.5`                    | `KeyError: Scenario 'scenario_99' not found`                           |
-| TC-005       | Missing tolerance argument                     | `scenario_3`                         | `IndexError: Missing required tolerance argument`                      |
-| TC-006       | POI in no-fly zone (high detection)            | `scenario_4 0.01`                    | `RuntimeError: Pathfinding aborted - Start/Target node in no-fly zone` |
-| TC-007       | Isolated POI (no connecting path)              | `scenario_5 0.3`                     | `RuntimeError: No valid path exists between POIs`                      |
-| TC-008       | Malformed coordinate input                     | `scenario_0 0.5` (with corrupt POIs) | `ValueError: Invalid POI coordinates`                                  |
-| TC-009       | All POIs in high-detection areas               | `scenario_6 0.001`                   | `RuntimeError: All POIs are in no-fly zones`                           |
-| TC-010       | Single POI (no path needed)                    | `scenario_0 0.5` (with 1 POI)        | `ValueError: At least 2 POIs required for pathfinding`                 |
-| TC-011       | POI exactly at radar location                  | `scenario_1 0.5` (POI = radar loc)   | `RuntimeError: POI coincides with radar location`                      |
-| TC-012       | Non-numeric tolerance                          | `scenario_2 "high"`                  | `TypeError: Tolerance must be numeric`                                 |
+| id      | description                       | input                    | expected_error                                                  |
+|--------| --------------------------------- | ------------------------ | --------------------------------------------------------------- |
+| TC-001 | Tolerance set to 0 (impossible)   | `scenario_0 0.0`         | `ValueError: Tolerance must be greater than 1e-4`               |
+| TC-002 | Negative tolerance value          | `scenario_1 -0.1`        | `ValueError: Tolerance must be greater than 1e-4`               |
+| TC-003 | Tolerance > 1.0                   | `scenario_2 1.1`         | `ValueError: Tolerance must be between 1e-4 and 1`              |
+| TC-004 | Non-existent scenario             | `scenario_99 0.5`        | `KeyError: Scenario 'scenario_99' not found`                    |
+| TC-005 | Missing tolerance argument        | `scenario_3`             | `TypeError: Tolerance must be numeric`                          |
+| TC-007 | Isolated POI (no connecting path) | `scenario_5 0.3`         | `RuntimeError: Pathfinding aborted due to invalid path segment` |
+| TC-008 | Malformed coordinate input        | `scenario_0_corrupt 0.5` | `ValueError: Invalid POI coordinates`                           |
+| TC-009 | All POIs in high-detection areas  | `scenario_6 0.001`       | `RuntimeError: Empty graph - all nodes exceed tolerance`        |
+| TC-010 | Single POI (no path needed)       | `scenario_0_single 0.5`  | `ValueError: At least 2 POIs required for pathfinding`          |
+| TC-011 | Non-numeric tolerance             | `scenario_2 high`        | `TypeError: Tolerance must be numeric`                          |
 
 In order to set up the environment and run the test cases, follow the README.md from the root of the zip file.
 
@@ -259,11 +289,12 @@ In order to set up the environment and run the test cases, follow the README.md 
 # Use of AI
 
 During the development of this project, generative AI was used to support certain phases of our work. Its usage was strictly limited to:
+
 - **Conceptual understanding** (e.g., radar equations, Gaussian distributions, heuristic admissibility).
 
 - **Debugging assistance** (e.g., troubleshooting code, understanding libraries).
 
-### Where AI Was Used
+## Where AI Was Used
 
 - **Radar Equation & Gaussian Distributions**:
 AI helped clarify the mathematical foundations, including the radar equation (1) and the construction of a multivariate 
@@ -276,7 +307,7 @@ lacked detailed examples.
 - **Debugging Support**:
 AI provided alternative approaches when debugging issues in grid generation and probability scaling.
 
-### How AI Facilitated the Project
+## How AI Facilitated the Project
 
 - **Efficiency**:
 AI summarized technical papers on radar detection models, speeding up research.
@@ -287,7 +318,7 @@ Some Python functions had sparse documentation, but AI supplemented with practic
 - **Validation**:
 Our heuristic admissibility proofs were cross-checked against AI-generated examples to ensure correctness.
 
-### Verification & Corrections
+## Verification & Corrections
 
 All AI-provided information was manually verified:
 
@@ -303,19 +334,32 @@ In this project we have successfully implemented a heuristic search system for a
 a radar-monitored airspace without being detected while visiting some points of interest. This was achieved by modelling
 radar detection using multivariate Gaussian distributions and an A* algorithm with admissible heuristics.
 
-### Mathematical modelling:
-- We formalized the problem by using grid-based states, radar equations and probabilistic radar detection thresholds.
-- We designed two admissible heuristics (Euclidean and Manhattan distance) for optimal pathfinding
+## Mathematical modelling:
 
-### Technical implementation:
+- We formalized the problem by using grid-based states, radar equations and probabilistic radar detection thresholds.
+- We designed two admissible heuristics (Euclidean and Manhattan distance) for optimal pathfinding. 
+
+The Euclidean heuristic calculates straight-line distance and is ideal for open areas with few obstacles, providing
+shorter, smoother paths that minimize detection exposure when diagonal movement is allowed, while the Manhattan 
+heuristic, which sums horizontal and vertical distances, works better for grid-based movement in dense radar 
+environments, as it avoids underestimating costs around obstacles and is computationally faster for large grids.
+
+![Euclidean heuristic map](img/euclidean.png)
+![Manhattan heuristic map](img/manhattan.png)
+
+## Technical implementation:
+
 - Built a probability map in Python using NumPy and integrated with Networkx for graph-based search.
 - Implemented edge cases too.
 
-### Testing:
+## Testing:
+
 - We tested different scenarios with different POIs and tolerance to ensure good performance.
 
-### Challenges
-Some of the challenges that arised during the development of the project were:
+## Challenges
+
+Some of the challenges that arose during the development of the project were:
+
 - The conversion from geodetic(degrees) to Cartesian(meters) coordinates result in approximation errors, especially in large
 sized areas.
 - Ensure that heuristics never overestimated costs required careful testing, specially in edge cases.

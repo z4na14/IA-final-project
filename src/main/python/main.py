@@ -261,7 +261,7 @@ def main() -> None:
     try:
         # Compute the solution
         solution_plan, nodes_expanded = path_finding(graph=directed_graph,
-                                                     heuristic_function=h1,
+                                                     heuristic_function=h2,
                                                      locations=points_of_interest,
                                                      initial_location_index=0,
                                                      boundaries=boundaries,
