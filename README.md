@@ -40,13 +40,14 @@ To start a virtual environment to install the packages:
 python -m venv venv
 ```
 
+> Or if run from a Debian machine, `python3 -m venv venv`
+> Everything is expected to run on a UNIX environment (Linux machine), as the whole project was written and adapted to it.
+
 And to activate it:
 
 ```
 source venv/bin/activate
 ```
-
-> Everything is expected to run on a UNIX environment (Linux machine), as the whole project is tested to run on a Guernika session.
 
 The requirements are listed in `requirements.txt`, installable by running:
 
