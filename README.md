@@ -65,5 +65,3 @@ To run pybuilder with the respective developed tests:
 ```
 pyb
 ```
-```
-```
